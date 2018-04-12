@@ -75,6 +75,7 @@ c=$(( c < 70 ? 70 : c ))
 # The runUnattended flag is one example of this
 skipSpaceCheck=false
 reconfigure=false
+repair=false
 runUnattended=false
 
 # If the color table file exists,
@@ -1591,7 +1592,7 @@ updatePihole() {
   # Install base files and web interface
   installScripts
   # Install config files
-  installConfigs  
+  installConfigs
   # If the user wants to install the dasboard,
   if [[ "${INSTALL_WEB}" == true ]]; then
     # do so
@@ -1664,47 +1665,18 @@ ${additional}" ${r} ${c}
 }
 
 update_dialogs() {
-  # If pihole -r "reconfigure" option was selected,
-  if [[ "${reconfigure}" = true ]]; then
-    # set some variables that will be used
-    opt1a="Repair"
-    opt1b="This will retain existing settings"
-    strAdd="You will remain on the same version"
-  # Othweise,
+  # If pihole -r option was selected,
+  if [[ "${repair}" = true ]]; then
+    useUpdateVars=true
   else
-    # set some variables with different values
-    opt1a="Update"
-    opt1b="This will retain existing settings."
-    strAdd="You will be updated to the latest version."
+    useUpdateVars=false
   fi
-  opt2a="Reconfigure"
-  opt2b="This will allow you to enter new settings"
-
-  # Display the information to the user
-  UpdateCmd=$(whiptail --title "Existing Install Detected!" --menu "\\n\\nWe have detected an existing install.\\n\\nPlease choose from the following options: \\n($strAdd)" ${r} ${c} 2 \
-  "${opt1a}"  "${opt1b}" \
-  "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-  { echo -e "  ${COL_LIGHT_RED}Cancel was selected, exiting installer${COL_NC}"; exit 1; }
-
-  # Set the variable based on if the user chooses
-  case ${UpdateCmd} in
-    # repair, or
-    ${opt1a})
-      echo -e "  ${INFO} ${opt1a} option selected"
-      useUpdateVars=true
-      ;;
-    # reconfigure,
-    ${opt2a})
-      echo -e "  ${INFO} ${opt2a} option selected"
-      useUpdateVars=false
-      ;;
-    esac
 }
 
 clone_or_update_repos() {
   # If the user wants to reconfigure,
-  if [[ "${reconfigure}" == true ]]; then
-    echo "  ${INFO} Performing reconfiguration, skipping download of local repos"
+  if [[ "${repair}" == true ]]; then
+    echo "  ${INFO} Performing repair, skipping download of local repos"
     # Reset the Core repo
     resetRepo ${PI_HOLE_LOCAL_REPO} || \
       { echo -e "  ${COL_LIGHT_RED}Unable to reset ${PI_HOLE_LOCAL_REPO}, exiting installer${COL_NC}"; \
@@ -2034,7 +2006,8 @@ main() {
   # Check arguments for the undocumented flags
   for var in "$@"; do
     case "$var" in
-      "--reconfigure" ) reconfigure=true;;
+      "--reconfigure" ) repair=true; reconfigure=false;;
+      "--repair" ) repair=true; reconfigure=true;;
       "--i_do_not_follow_recommendations" ) skipSpaceCheck=true;;
       "--unattended" ) runUnattended=true;;
     esac

@@ -80,6 +80,11 @@ reconfigurePiholeFunc() {
   exit 0;
 }
 
+repairPiholeFunc() {
+  /etc/.pihole/automated\ install/basic-install.sh --repair
+  exit 0;
+}
+
 updateGravityFunc() {
   "${PI_HOLE_SCRIPT_DIR}"/gravity.sh "$@"
   exit 0
@@ -317,7 +322,6 @@ chronometerFunc() {
   "${PI_HOLE_SCRIPT_DIR}"/chronometer.sh "$@"
   exit 0
 }
-
 
 uninstallFunc() {
   "${PI_HOLE_SCRIPT_DIR}"/uninstall.sh
@@ -605,7 +609,8 @@ Debugging Options:
   -d, debug           Start a debugging session
                         Add '-a' to enable automated debugging
   -f, flush           Flush the Pi-hole log
-  -r, reconfigure     Reconfigure or Repair Pi-hole subsystems
+  -r, repair          Repair Pi-hole subsystems
+  -R, reconfigure     Reconfigure Pi-hole subsystems
   -t, tail            View the live output of the Pi-hole log
 
 Options:
@@ -645,7 +650,8 @@ case "${1}" in
   "-d" | "debug"                ) debugFunc "$@";;
   "-f" | "flush"                ) flushFunc "$@";;
   "-up" | "updatePihole"        ) updatePiholeFunc;;
-  "-r"  | "reconfigure"         ) reconfigurePiholeFunc;;
+  "-r"  | "repair"              ) repairPiholeFunc;;
+  "-R"  | "reconfigure"         ) reconfigurePiholeFunc;;
   "-g" | "updateGravity"        ) updateGravityFunc "$@";;
   "-c" | "chronometer"          ) chronometerFunc "$@";;
   "-h" | "help"                 ) helpFunc;;
