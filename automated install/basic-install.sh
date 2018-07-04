@@ -1,51 +1,18 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1090
 
-# Pi-hole: A black hole for Internet advertisements
-# (c) 2017-2018 Pi-hole, LLC (https://pi-hole.net)
-# Network-wide ad blocking via your own hardware.
-#
-# Installs and Updates Pi-hole
-#
-# This file is copyright under the latest version of the EUPL.
-# Please see LICENSE file for your rights under this license.
-
-# pi-hole.net/donate
-#
-# Install with this command (from your Linux machine):
-#
-# curl -sSL https://install.pi-hole.net | bash
-
-# -e option instructs bash to immediately exit if any command [1] has a non-zero exit status
-# We do not want users to end up with a partially working install, so we exit the script
-# instead of continuing the installation with something broken
 set -e
 
-######## VARIABLES #########
-# For better maintainability, we store as much information that can change in variables
-# This allows us to make a change in one place that can propagate to all instances of the variable
-# These variables should all be GLOBAL variables, written in CAPS
-# Local variables will be in lowercase and will exist only within functions
-# It's still a work in progress, so you may see some variance in this guideline until it is complete
-
-# Location for final installation log storage
 installLogLoc=/etc/pihole/install.log
-# This is an important file as it contains information specific to the machine it's being installed on
 setupVars=/etc/pihole/setupVars.conf
-# Pi-hole uses lighttpd as a Web server, and this is the config file for it
-# shellcheck disable=SC2034
 lighttpdConfig=/etc/lighttpd/lighttpd.conf
-# This is a file used for the colorized output
 coltable=/opt/pihole/COL_TABLE
 
-# We store several other folders and
 webInterfaceGitUrl="https://github.com/pi-hole/AdminLTE.git"
 webInterfaceDir="/var/www/html/admin"
 piholeGitUrl="https://github.com/pi-hole/pi-hole.git"
 PI_HOLE_LOCAL_REPO="/etc/.pihole"
-# These are the names of pi-holes files, stored in an array
 PI_HOLE_FILES=(chronometer list piholeDebug piholeLogFlush setupLCD update version gravity uninstall webpage)
-# This folder is where the Pi-hole scripts will be installed
 PI_HOLE_INSTALL_DIR="/opt/pihole"
 useUpdateVars=false
 
