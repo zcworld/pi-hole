@@ -88,52 +88,10 @@ show_ascii_berry() {
                   ..'''.${COL_NC}
 "
 }
+pkg install iproute php sqlite3 dialog  dhcpcd git bc cron curl dnsmasq bind-tools  lsof netcat sudo unzip wget idn2 sqlite3
+#MISSING SO FAR :: iputils-ping
 
-# Compatibility
-distro_check() {
-# If apt-get is installed, then we know it's part of the Debian family
-if command -v apt-get &> /dev/null; then
-  # Set some global variables here
-  # We don't set them earlier since the family might be Red Hat, so these values would be different
-  PKG_MANAGER="apt-get"
-  # A variable to store the command used to update the package cache
-  UPDATE_PKG_CACHE="${PKG_MANAGER} update"
-  # An array for something...
-  PKG_INSTALL=(${PKG_MANAGER} --yes --no-install-recommends install)
-  # grep -c will return 1 retVal on 0 matches, block this throwing the set -e with an OR TRUE
-  PKG_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
-  # Some distros vary slightly so these fixes for dependencies may apply
-  # Debian 7 doesn't have iproute2 so if the dry run install is successful,
-  if ${PKG_MANAGER} install --dry-run iproute2 > /dev/null 2>&1; then
-    # we can install it
-    iproute_pkg="iproute2"
-  # Otherwise,
-  else
-    # use iproute
-    iproute_pkg="iproute"
-  fi
-  # We prefer the php metapackage if it's there
-  if ${PKG_MANAGER} install --dry-run php > /dev/null 2>&1; then
-    phpVer="php"
-  # If not,
-  else
-    # fall back on the php5 packages
-    phpVer="php5"
-  fi
-  # We also need the correct version for `php-sqlite` (which differs across distros)
-  if ${PKG_MANAGER} install --dry-run ${phpVer}-sqlite3 > /dev/null 2>&1; then
-    phpSqlite="sqlite3"
-  else
-    phpSqlite="sqlite"
-  fi
-  # Since our install script is so large, we need several other programs to successfuly get a machine provisioned
-  # These programs are stored in an array so they can be looped through later
-  INSTALLER_DEPS=(apt-utils dialog debconf dhcpcd5 git ${iproute_pkg} whiptail)
-  # Pi-hole itself has several dependencies that also need to be installed
-  PIHOLE_DEPS=(bc cron curl dnsmasq dnsutils iputils-ping lsof netcat sudo unzip wget idn2 sqlite3)
-  # The Web dashboard has some that also need to be installed
-  # It's useful to separate the two since our repos are also setup as "Core" code and "Web" code
-  PIHOLE_WEB_DEPS=(lighttpd ${phpVer}-common ${phpVer}-cgi ${phpVer}-${phpSqlite})
+PIHOLE_WEB_DEPS=(lighttpd ${phpVer}-common ${phpVer}-cgi ${phpVer}-${phpSqlite})
   # The Web server user,
   LIGHTTPD_USER="www-data"
   # group,
@@ -143,33 +101,8 @@ if command -v apt-get &> /dev/null; then
   # The DNS server user
   DNSMASQ_USER="dnsmasq"
 
-  # A function to check...
-  test_dpkg_lock() {
-      # An iterator used for counting loop iterations
-      i=0
-      # fuser is a program to show which processes use the named files, sockets, or filesystems
-      # So while the command is true
-      while fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
-        # Wait half a second
-        sleep 0.5
-        # and increase the iterator
-        ((i=i+1))
-      done
-      # Always return success, since we only return if there is no
-      # lock (anymore)
-      return 0
-    }
 
-# If apt-get is not found, check for rpm to see if it's a Red Hat family OS
-elif command -v rpm &> /dev/null; then
-  # Then check if dnf or yum is the package manager
-  if command -v dnf &> /dev/null; then
-    PKG_MANAGER="dnf"
-  else
-    PKG_MANAGER="yum"
-  fi
 
-  # Fedora and family update cache on every PKG_INSTALL call, no need for a separate update.
   UPDATE_PKG_CACHE=":"
   PKG_INSTALL=(${PKG_MANAGER} install -y)
   PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
@@ -184,14 +117,6 @@ elif command -v rpm &> /dev/null; then
     LIGHTTPD_GROUP="lighttpd"
     LIGHTTPD_CFG="lighttpd.conf.fedora"
     DNSMASQ_USER="nobody"
-
-# If neither apt-get or rmp/dnf are found
-else
-  # it's not an OS we can support,
-  echo -e "  ${CROSS} OS distribution not supported"
-  # so exit the installer
-  exit
-fi
 }
 
 # A function for checking if a folder is a git repository
